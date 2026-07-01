@@ -498,19 +498,21 @@ finally:
             restart_system()
         system_reset_done = True
 
-    # Print results summary only if we have results
-    if results:
+    # Print results summary only if we have hashrate-valid results
+    valid_results = [result for result in results if result.get("hashrateOK") is True]
+    if valid_results:
         # Sort results by averageHashRate in descending order and get the top 5
         top_5_results = sorted(
-            results, key=lambda x: x["averageHashRate"], reverse=True
+            valid_results, key=lambda x: x["averageHashRate"], reverse=True
         )[:5]
         top_5_efficient_results = sorted(
-            results, key=lambda x: x["efficiencyJTH"], reverse=False
+            valid_results, key=lambda x: x["efficiencyJTH"], reverse=False
         )[:5]
 
         # Create a dictionary containing all results and top performers
         final_data = {
             "all_results": results,
+            "valid_results": valid_results,
             "top_performers": [
                 {
                     "rank": i,
@@ -589,7 +591,11 @@ finally:
                 if "averageVRTemp" in result:
                     print(GREEN + f"  Average VR Temperature: {result['averageVRTemp']:.2f}°C" + RESET)
         else:
-            print(RED + "No valid results were found during benchmarking." + RESET)
+            print(
+                RED
+                + "No hashrate-valid results (hashrateOK=True) were found during benchmarking."
+                + RESET
+            )
 
 # Add this new function to handle cleanup
 def cleanup_and_exit(reason=None):
